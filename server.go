@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"io"
@@ -7,8 +7,8 @@ import (
 	"sync"
 )
 
-func main() {
-	tcpAddr, err := net.ResolveTCPAddr("tcp", ":7777")
+func Server(address string) {
+	tcpAddr, err := net.ResolveTCPAddr("tcp", address)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -22,11 +22,11 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		go handleConnection(conn)
+		go HandleConnection(conn)
 	}
 }
 
-func handleConnection(conn *net.TCPConn) {
+func HandleConnection(conn *net.TCPConn) {
 	if conn == nil {
 		return
 	}
@@ -41,7 +41,7 @@ func handleConnection(conn *net.TCPConn) {
 	}
 
 	var protocolVersion ProtocolVersion
-	response, err := protocolVersion.handleHandshake(buff[0:n])
+	response, err := protocolVersion.HandleHandshake(buff[0:n])
 	_, err = conn.Write(response)
 	if err != nil {
 		log.Fatal(err)
@@ -58,7 +58,7 @@ func handleConnection(conn *net.TCPConn) {
 	}
 	var socks5Resolution Socks5Resolution
 	// 此方法目前在与目标服务器建立连接之前已经回应客户端连接成功
-	response, err = socks5Resolution.handleRequest(buff[0:n])
+	response, err = socks5Resolution.HandleRequest(buff[0:n])
 	_, err = conn.Write(response)
 	if err != nil {
 		log.Fatal(err)
@@ -81,19 +81,19 @@ func handleConnection(conn *net.TCPConn) {
 	// 本地客户端数据拷贝到目标服务器
 	go func() {
 		defer wg.Done()
-		copy(conn, dstServer)
+		Copy(conn, dstServer)
 	}()
 
 	// 目标服务器数据拷贝到本地客户端
 	go func() {
 		defer wg.Done()
-		copy(dstServer, conn)
+		Copy(dstServer, conn)
 	}()
 
 	wg.Wait()
 }
 
-func copy(src io.ReadWriteCloser, dst io.ReadWriteCloser) (written int64, err error) {
+func Copy(src io.ReadWriteCloser, dst io.ReadWriteCloser) (written int64, err error) {
 	size := 1024
 	buf := make([]byte, size)
 	for {

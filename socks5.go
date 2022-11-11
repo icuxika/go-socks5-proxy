@@ -1,4 +1,4 @@
-package main
+package proxy
 
 import (
 	"encoding/binary"
@@ -26,8 +26,8 @@ type Socks5Resolution struct {
 	RAW_ADDR   *net.TCPAddr // 最终访问目标服务器使用的IP:PORT
 }
 
-// 版本和认证交互阶段
-func (p *ProtocolVersion) handleHandshake(b []byte) ([]byte, error) {
+// HandleHandshake 版本和认证交互阶段
+func (p *ProtocolVersion) HandleHandshake(b []byte) ([]byte, error) {
 	n := len(b)
 	if n < 3 {
 		return nil, errors.New("协议错误，NMETHODS不对")
@@ -59,8 +59,8 @@ func (p *ProtocolVersion) handleHandshake(b []byte) ([]byte, error) {
 	return response, nil
 }
 
-// 数据交互阶段
-func (s *Socks5Resolution) handleRequest(b []byte) ([]byte, error) {
+// HandleRequest 数据交互阶段
+func (s *Socks5Resolution) HandleRequest(b []byte) ([]byte, error) {
 	n := len(b)
 	if n < 7 {
 		return nil, errors.New("请求协议错误")
