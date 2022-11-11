@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	proxy "go-socks5-proxy"
+	proxy "github.com/icuxika/go-socks5-proxy"
 )
 
 func main() {
